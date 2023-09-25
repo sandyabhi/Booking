@@ -2,8 +2,8 @@
 
 import { useCallback, useState } from "react";
 import axios from "axios";
+import { signIn } from "next-auth/react";
 import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
-// import useRegisterModal from "@/app/hooks/useRegisterModal";
 import Modal from "./Modal";
 import { useRegisterModal } from "@/app/hooks/useRegisterModal";
 import Heading from "../Heading";
@@ -12,10 +12,14 @@ import toast from "react-hot-toast";
 import Button from "../Button";
 import { FcGoogle } from "react-icons/fc";
 import { AiFillGithub } from "react-icons/ai";
-import { signIn } from "next-auth/react";
+import { useLoginModal } from "@/app/hooks/useLoginModal";
+import { useRouter } from "next/navigation";
 
-const RegisterModal = () => {
+const LoginModal = () => {
+  const router = useRouter();
+
   const registerModal = useRegisterModal();
+  const loginModal = useLoginModal();
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -26,46 +30,63 @@ const RegisterModal = () => {
   } = useForm<FieldValues>({
     defaultValues: {
       name: "",
-      email: "",
       password: "",
     },
   });
 
-  const onSubmit: SubmitHandler<FieldValues> = (data) => {
+  const onSubmit: SubmitHandler<FieldValues> = async (data) => {
     setIsLoading(true);
 
-    axios
-      .post("/api/register", data)
-      .then(() => {
-        toast.success("Registered!");
-        registerModal.onClose();
-      })
-      .catch((error) => {
-        toast.error("Something Went Wrong");
-      })
-      .finally(() => {
-        setIsLoading(false);
+    try {
+      const callback = await signIn("credentials", {
+        ...data,
+        redirect: false,
+        callbackUrl: "/",
       });
+
+      if (callback?.ok) {
+        // Sign-in successful
+        console.log("Logged in");
+        // toast.success("Logged in");
+        // Optionally refresh the page
+        // router.refresh();
+        // Close the login modal if needed
+        loginModal.onClose();
+      } else if (callback?.error) {
+        // Sign-in error
+        toast.error(callback.error);
+      }
+    } catch (error) {
+      console.error("Error during sign-in:", error);
+    }
+
+    console.log(data);
+
+    // signIn("credentials", {
+    //   ...data,
+    //   redirect: false,
+    // }).then((callback) => {
+    //   setIsLoading(false);
+
+    //   if (callback?.ok) {
+    //     console.log("loggin");
+
+    //     toast.success("Logged in");
+    //     // router.refresh();
+    //     loginModal.onClose();
+    //   }
+    //   if (callback?.error) {
+    //     toast.error(callback.error);
+    //   }
+    // });
   };
 
   const bodyContent = (
     <div className="flex flex-col gap-4">
-      <Heading
-        title="Welcome to Booking.com"
-        subtitle="Create an account!"
-        center
-      />
+      <Heading title="Welcome back" subtitle="Login to your account!" center />
       <Input
         id="email"
         label="Email"
-        disabled={isLoading}
-        register={register}
-        errors={errors}
-        required
-      />
-      <Input
-        id="name"
-        label="Name"
         disabled={isLoading}
         register={register}
         errors={errors}
@@ -106,7 +127,7 @@ const RegisterModal = () => {
       <div className="text-neutral-500 text-center mt-4 font-light">
         <span>Already have an account?</span>{" "}
         <span
-          onClick={registerModal.onClose}
+          onClick={loginModal.onClose}
           className="text-neutral-800 cursor-pointer hover:underline"
         >
           Log In
@@ -119,10 +140,10 @@ const RegisterModal = () => {
     <>
       <Modal
         disabled={isLoading}
-        isOpen={registerModal.isOpen}
-        title="Register"
+        isOpen={loginModal.isOpen}
+        title="Login"
         actionLabel="Continue"
-        onClose={registerModal.onClose}
+        onClose={loginModal.onClose}
         onSubmit={handleSubmit(onSubmit)}
         body={bodyContent}
         footer={footerContent}
@@ -131,4 +152,4 @@ const RegisterModal = () => {
   );
 };
 
-export default RegisterModal;
+export default LoginModal;
