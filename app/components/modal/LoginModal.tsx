@@ -46,10 +46,10 @@ const LoginModal = () => {
 
       if (callback?.ok) {
         // Sign-in successful
-        console.log("Logged in");
-        // toast.success("Logged in");
+        // console.log("Logged in");
+        toast.success("Logged in");
         // Optionally refresh the page
-        // router.refresh();
+        router.refresh();
         // Close the login modal if needed
         loginModal.onClose();
       } else if (callback?.error) {
@@ -80,6 +80,11 @@ const LoginModal = () => {
     //   }
     // });
   };
+
+  const toggle = useCallback(() => {
+    loginModal.onClose();
+    registerModal.onOpen();
+  }, [loginModal, registerModal]);
 
   const bodyContent = (
     <div className="flex flex-col gap-4">
@@ -125,12 +130,12 @@ const LoginModal = () => {
       />
 
       <div className="text-neutral-500 text-center mt-4 font-light">
-        <span>Already have an account?</span>{" "}
+        <span>First time using Booking.com</span>{" "}
         <span
-          onClick={loginModal.onClose}
+          onClick={toggle}
           className="text-neutral-800 cursor-pointer hover:underline"
         >
-          Log In
+          Create an Account
         </span>
       </div>
     </div>
