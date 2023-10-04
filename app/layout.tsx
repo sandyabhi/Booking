@@ -9,6 +9,7 @@ import getCurrentUser from "./actions/getCurrentUser";
 
 import ClientOnly from "./components/ClientOnly";
 import RentModal from "./components/modal/RentModal";
+import SearchModal from "./components/modal/SearchModal";
 
 export const metadata: Metadata = {
   title: "Booking.com",
@@ -32,6 +33,7 @@ export default async function RootLayout({
         <ClientOnly>
           <ToasterProvider />
 
+          <SearchModal />
           <RentModal />
           <LoginModal />
           <RegisterModal />
